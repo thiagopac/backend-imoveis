@@ -12,79 +12,74 @@ export default class Imovel extends BaseModel {
   public uuid: string
 
   @column()
-  public externalId: number
+  public externalId: number | null
 
   @column()
-  public descricao: string
+  public titulo: string | null
 
   @column()
-  public informacaoJudicial: string
+  public descricao: string | null
 
   @column()
-  public cep: string
+  public cep: string | null
 
   @column()
-  public cidade: string
+  public cidade: string | null
 
   @column()
-  public estado: string
+  public estado: string | null
 
   @column()
-  public cidadeId: number
+  public tipoNegociacao: string | null
 
   @column()
-  public estadoId: number
+  public urlSiteExterno: string | null
 
   @column()
-  public tipoLeilaoDescricao: string
-
-  @column()
-  public urlLeilaoExterno: string
-
-  @column()
-  public tipoBemDescricao: string
+  public tipoBemDescricao: string | null
 
   @column.dateTime()
-  public dataCadastro: DateTime
+  public dataCadastro: DateTime | null
 
   @column()
-  public areaHa: number
+  public areaHa: number | null
 
   @column()
-  public areaWarning: boolean
+  public areaAtencao: boolean | null
 
   @column()
-  public metroQuadrado: number
+  public metroQuadrado: number | null
 
   @column()
-  public aceitaParcelamento: boolean
+  public aceitaParcelamento: boolean | null
 
   @column.dateTime()
-  public dataFim: DateTime
+  public dataFim: DateTime | null
 
   @column()
-  public valor: number
+  public valor: number | null
 
   @column()
-  public valorAvaliacao: number
+  public valorAvaliacao: number | null
 
   @column()
-  public valorDesconto: number
+  public valorDesconto: number | null
 
   @column()
-  public imovelPracas: JSON
+  public imovelPracas: JSON | null
 
   @column()
-  public imagensImoveis: JSON
+  public imagens: JSON | null
 
   @column()
-  public source: string
+  public origem: string
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
 
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   public updatedAt: DateTime
+
   /*
   |--------------------------------------------------------------------------
   | Hooks

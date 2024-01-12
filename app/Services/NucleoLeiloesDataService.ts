@@ -1,6 +1,7 @@
 import axios from 'axios'
 import Env from '@ioc:Adonis/Core/Env'
 import Imovel from 'App/Models/Imovel'
+import { toTitleCase } from 'utils/string.utils'
 
 export default class NucleoLeiloesDataService {
   private NUCLEO_LEILOES_URL = Env.get('NUCLEO_LEILOES_URL')
@@ -65,26 +66,24 @@ export default class NucleoLeiloesDataService {
       5: 'Venda Direta',
     }
 
-    const { areaEmHectares, areaWarning } = this.extrairAreaEmHectares(
+    const { areaEmHectares, areaAtencao } = this.extrairAreaEmHectares(
       dadosImovel.descricao,
       dadosImovel.informacaoJudicial
     )
 
     const imovel = {
       externalId: dadosImovel.id,
-      descricao: dadosImovel.descricao,
-      informacaoJudicial: dadosImovel.informacaoJudicial,
+      titulo: dadosImovel.descricao,
+      descricao: dadosImovel.informacaoJudicial,
       cep: dadosImovel.cep,
-      cidade: dadosImovel.cidade,
+      cidade: toTitleCase(dadosImovel.cidade),
       estado: dadosImovel.estado,
-      cidadeId: dadosImovel.cidadeId,
-      estadoId: dadosImovel.estadoId,
-      tipoLeilaoDescricao: tipoLeilaoDescricoes[dadosImovel.tipoLeilaoId],
-      urlLeilaoExterno: dadosImovel.urlLeilaoExterno,
+      tipoNegociacao: tipoLeilaoDescricoes[dadosImovel.tipoLeilaoId],
+      urlSiteExterno: dadosImovel.urlLeilaoExterno,
       tipoBemDescricao: dadosImovel.tipoBemDescricao,
       dataCadastro: dadosImovel.dataCadastro,
       areaHa: areaEmHectares ?? 0,
-      areaWarning: areaWarning,
+      areaAtencao: areaAtencao,
       metroQuadrado: dadosImovel.metroQuadrado,
       aceitaParcelamento: dadosImovel.aceitaParcelamento,
       dataFim: dadosImovel.dataFim,
@@ -92,8 +91,8 @@ export default class NucleoLeiloesDataService {
       valorAvaliacao: dadosImovel.valorAvaliacao,
       valorDesconto: dadosImovel.valorDesconto,
       imovelPracas: JSON.stringify(dadosImovel.imovelPracas) as any,
-      imagensImoveis: JSON.stringify(dadosImovel.imagensImoveis) as any,
-      source: 'nucleoleiloes',
+      imagens: JSON.stringify(dadosImovel.imagensImoveis) as any,
+      origem: 'NucleoLeiloes',
     }
 
     await Imovel.create(imovel)
@@ -104,14 +103,14 @@ export default class NucleoLeiloesDataService {
     informacaoJudicial: string
   ): {
     areaEmHectares: number | null
-    areaWarning: boolean
+    areaAtencao: boolean
   } {
     const padraoHectare = /(\d{1,3}(?:\.\d{3})*|\d+)(?:,(\d+))?(\s?(ha|hectare|hectares|hec|há))/i
     const padraoMetroQuadrado =
       /(\d{1,3}(?:\.\d{3})*|\d+)(?:,(\d+))?(\s?(m²|m2|metros quadrados|metro quadrado|metros quadrado|metros|metro))/i
 
     let textoParaAnalise = descricao + ' ' + informacaoJudicial
-    let areaWarning = false
+    let areaAtencao = false
     let areaEmHectares: number | null = null
 
     // Verifica se é uma medida em hectares
@@ -138,9 +137,9 @@ export default class NucleoLeiloesDataService {
     }
 
     if (!areaEmHectares) {
-      areaWarning = true
+      areaAtencao = true
     }
 
-    return { areaEmHectares, areaWarning }
+    return { areaEmHectares, areaAtencao }
   }
 }

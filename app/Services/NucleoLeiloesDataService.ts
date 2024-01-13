@@ -1,10 +1,10 @@
 import axios from 'axios'
 import Env from '@ioc:Adonis/Core/Env'
 import Imovel from 'App/Models/Imovel'
-import { toTitleCase } from 'utils/string.utils'
+import StringUtils from '../../utils/string.utils'
 
 export default class NucleoLeiloesDataService {
-  private NUCLEO_LEILOES_URL = Env.get('NUCLEO_LEILOES_URL')
+  private NUCLEO_LEILOES_API_URL = Env.get('NUCLEO_LEILOES_API_URL')
 
   public async fetchAndSaveImoveis(estadoId: number, jwt: string) {
     try {
@@ -27,7 +27,7 @@ export default class NucleoLeiloesDataService {
 
   private async fazerRequisicao(pagina: number, estadoId: number, jwt: string) {
     const response = await axios.post(
-      this.NUCLEO_LEILOES_URL,
+      this.NUCLEO_LEILOES_API_URL,
       {
         EstadoId: [estadoId],
         CidadeId: null,
@@ -71,12 +71,16 @@ export default class NucleoLeiloesDataService {
       dadosImovel.informacaoJudicial
     )
 
+    const urlsImagensGrandes = dadosImovel.imagensImoveis.map(
+      (imagem: any) => imagem.caminhoImagemLarge
+    )
+
     const imovel = {
       externalId: dadosImovel.id,
       titulo: dadosImovel.descricao,
       descricao: dadosImovel.informacaoJudicial,
       cep: dadosImovel.cep,
-      cidade: toTitleCase(dadosImovel.cidade),
+      cidade: StringUtils.toTitleCase(dadosImovel.cidade),
       estado: dadosImovel.estado,
       tipoNegociacao: tipoLeilaoDescricoes[dadosImovel.tipoLeilaoId],
       urlSiteExterno: dadosImovel.urlLeilaoExterno,
@@ -91,7 +95,11 @@ export default class NucleoLeiloesDataService {
       valorAvaliacao: dadosImovel.valorAvaliacao,
       valorDesconto: dadosImovel.valorDesconto,
       imovelPracas: JSON.stringify(dadosImovel.imovelPracas) as any,
-      imagens: JSON.stringify(dadosImovel.imagensImoveis) as any,
+      imagens: JSON.stringify(urlsImagensGrandes) as any,
+      anunciante: null,
+      contato: null,
+      coordenadas: null,
+      poi: null,
       origem: 'NucleoLeiloes',
     }
 

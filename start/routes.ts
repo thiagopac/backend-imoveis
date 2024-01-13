@@ -25,6 +25,7 @@ Route.group(() => {
     return { hello: 'world' }
   })
   Route.get('/data/salvar-imoveis-nucleo-leiloes', 'DataController.salvarImoveisNucleoLeiloes')
+  Route.get('/data/salvar-imoveis-viva-real', 'DataController.salvarImoveisVivaReal')
 
   Route.group(() => {
     Route.get('/id/:id', 'ImovelController.buscarPorId')

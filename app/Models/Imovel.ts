@@ -72,6 +72,18 @@ export default class Imovel extends BaseModel {
   public imagens: JSON | null
 
   @column()
+  public anunciante: JSON | null
+
+  @column()
+  public contato: JSON | null
+
+  @column()
+  public coordenadas: JSON | null
+
+  @column()
+  public poi: JSON | null
+
+  @column()
   public origem: string
 
   @column.dateTime({ autoCreate: true })

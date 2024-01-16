@@ -29,6 +29,9 @@ export default class RechargeOption extends BaseModel {
   public value: number
 
   @column()
+  public durationDays: number
+
+  @column()
   public observations: string
 
   @column()

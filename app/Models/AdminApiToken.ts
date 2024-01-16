@@ -1,12 +1,12 @@
 import { DateTime } from 'luxon'
 import { BaseModel, column } from '@ioc:Adonis/Lucid/Orm'
 
-export default class UserApiToken extends BaseModel {
+export default class AdminApiToken extends BaseModel {
   @column({ isPrimary: true })
   public id: number
 
   @column({ serializeAs: null })
-  public userId: number
+  public adminId: number
 
   @column()
   public name: string

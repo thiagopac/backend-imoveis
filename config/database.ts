@@ -19,8 +19,8 @@ const databaseConfig: DatabaseConfig = {
   | file.
   |
   */
-  // connection: Env.get('DB_CONNECTION'),
-  connection: Env.get('DB_CONNECTION', 'sqlite'),
+  connection: Env.get('DB_CONNECTION'),
+  // connection: Env.get('DB_CONNECTION', 'sqlite'),
 
   connections: {
     /*
@@ -34,33 +34,33 @@ const databaseConfig: DatabaseConfig = {
     | npm i mysql2
     |
     */
-    sqlite: {
-      client: 'sqlite',
-      connection: {
-        filename: Env.get('DB_FILEPATH', './database.sqlite'),
-      },
-      migrations: {
-        naturalSort: true,
-      },
-      useNullAsDefault: true,
-      healthCheck: false,
-      debug: false,
-    },
-    // mysql: {
-    //   client: 'mysql2',
+    // sqlite: {
+    //   client: 'sqlite',
     //   connection: {
-    //     host: Env.get('MYSQL_HOST'),
-    //     port: Env.get('MYSQL_PORT'),
-    //     user: Env.get('MYSQL_USER'),
-    //     password: Env.get('MYSQL_PASSWORD', ''),
-    //     database: Env.get('MYSQL_DB_NAME'),
+    //     filename: Env.get('DB_FILEPATH', './database.sqlite'),
     //   },
     //   migrations: {
     //     naturalSort: true,
     //   },
+    //   useNullAsDefault: true,
     //   healthCheck: false,
     //   debug: false,
     // },
+    mysql: {
+      client: 'mysql2',
+      connection: {
+        host: Env.get('MYSQL_HOST'),
+        port: Env.get('MYSQL_PORT'),
+        user: Env.get('MYSQL_USER'),
+        password: Env.get('MYSQL_PASSWORD', ''),
+        database: Env.get('MYSQL_DB_NAME'),
+      },
+      migrations: {
+        naturalSort: true,
+      },
+      healthCheck: false,
+      debug: false,
+    },
   },
 }
 

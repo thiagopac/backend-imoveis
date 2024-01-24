@@ -25,7 +25,7 @@ export default class extends BaseSeeder {
     await this.runSeeder(await import('../User'))
     await this.runSeeder(await import('../UserInfo'))
     await this.runSeeder(await import('../Admin'))
-    await this.runSeeder(await import('../Imovel'))
+    // await this.runSeeder(await import('../Imovel'))
     await this.runSeeder(await import('../AdminInfo'))
     await this.runSeeder(await import('../UserApiToken')) //para manter token de acesso fixo durante desenvolvimento
     await this.runSeeder(await import('../AdminApiToken')) //para manter token de acesso fixo durante desenvolvimento

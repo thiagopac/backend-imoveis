@@ -28,7 +28,7 @@ Route.group(() => {
   Route.get('/data/salvar-imoveis-viva-real', 'DataController.salvarImoveisVivaReal')
 
   Route.group(() => {
-    Route.get('/id/:id', 'ImovelController.buscarPorId')
-    Route.get('/busca', 'ImovelController.buscaComFiltros')
+    Route.get('/buscar', 'BuscaImoveisController.buscarImoveis')
+    Route.get('/:id', 'ImovelController.buscarPorId')
   }).prefix('/imoveis')
 }).prefix('/api')

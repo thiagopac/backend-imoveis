@@ -2,52 +2,48 @@ import axios from 'axios'
 import Env from '@ioc:Adonis/Core/Env'
 import Imovel from 'App/Models/Imovel'
 
-export default class BuscaImoveisService {
+export default class PropertySearchService {
   private VIVA_REAL_API_URL = Env.get('VIVA_REAL_API_URL')
   private VIVA_REAL_SITE_URL = Env.get('VIVA_REAL_SITE_URL')
 
-  public async buscarImoveisCombinados(page: number, size: number, filtros: Record<string, any>) {
-    const resultadoBanco = await this.buscarImoveisNoBanco(page, size, filtros)
-    const resultadoVivaReal = await this.buscarImoveisVivaReal(page, size, filtros)
+  public async combinedPropertySearch(page: number, size: number, filters: Record<string, any>) {
+    const databaseResult = await this.databasePropertySearch(page, size, filters)
+    const vivarealResult = await this.vivarealPropertySearch(page, size, filters)
 
-    const listingsCombinadas = [...resultadoBanco.listings, ...resultadoVivaReal.listings]
-    // const listingsCombinadas = [...resultadoBanco.listings]
+    const combined = [...databaseResult.properties, ...vivarealResult.properties]
+    // const resuldadosCombinados = [...resultadoBanco.properties]
 
-    const totalCountCombinado = resultadoVivaReal.totalCount + resultadoBanco.totalCount
+    const combinedTotal = databaseResult.total_count + vivarealResult.total_count
     // const totalCountCombinado = resultadoBanco.totalCounts
-    const totalPagesCombinado = Math.ceil(totalCountCombinado / size)
+    const combinedTotalPages = Math.ceil(combinedTotal / size)
 
     const paginacaoCombinada = {
-      listings: listingsCombinadas,
-      totalCount: totalCountCombinado,
-      currentPage: page,
-      pageSize: size,
-      totalPages: totalPagesCombinado,
+      properties: combined,
+      total_count: combinedTotal,
+      current_page: page,
+      page_size: size,
+      total_pages: combinedTotalPages,
     }
 
     return paginacaoCombinada
   }
 
-  public async buscarImoveisVivaReal(page: number, size: number, filtros: Record<string, any>) {
+  public async vivarealPropertySearch(page: number, size: number, filters: Record<string, any>) {
     const from = (page - 1) * size
 
-    console.log(filtros)
-
-    const filtrosDecodificados = this.decodificarFiltrosParaVivaReal(filtros)
-
-    console.log(filtrosDecodificados)
+    const filtrosDecodificados = this.vivarealDecodeFilters(filters)
 
     try {
-      const response = await this.fazerRequisicao(size, from, filtros)
+      const response = await this.fazerRequisicao(size, from, filtrosDecodificados)
       const listings = response.data.search.result.listings
       const totalCount = response.data.search.totalCount
 
       const data = {
-        listings: listings.map((listingData: any) => this.mapearImovel(listingData)),
-        totalCount,
-        currentPage: page,
-        pageSize: size,
-        totalPages: Math.ceil(totalCount / size),
+        properties: listings.map((listingData: any) => this.propertyMap(listingData)),
+        total_count: totalCount,
+        current_page: page,
+        page_size: size,
+        total_pages: Math.ceil(totalCount / size),
       }
 
       return data
@@ -57,7 +53,7 @@ export default class BuscaImoveisService {
     }
   }
 
-  private async fazerRequisicao(size: number, from: number, filtros: Record<string, any>) {
+  private async fazerRequisicao(size: number, from: number, filters: Record<string, any>) {
     return await axios.get(this.VIVA_REAL_API_URL, {
       headers: {
         'User-Agent': 'insomnia/8.5.1',
@@ -73,12 +69,12 @@ export default class BuscaImoveisService {
         categoryPage: 'RESULT',
         size,
         from,
-        ...filtros,
+        ...filters,
       },
     })
   }
 
-  private mapearImovel(dadosImovel: any) {
+  private propertyMap(dadosImovel: any) {
     const urlsImagens = dadosImovel.medias.map((media: any) =>
       media.url.replace('{action}', 'fit-in').replace('{width}', '870').replace('{height}', '653')
     )
@@ -99,35 +95,35 @@ export default class BuscaImoveisService {
     }
 
     return {
-      externalId: dadosImovel.listing.id,
+      external_id: dadosImovel.listing.id,
       titulo: dadosImovel.listing.title,
       descricao: dadosImovel.listing.description,
       cep: dadosImovel.listing.address.zipCode,
       cidade: dadosImovel.listing.address.city,
       estado: dadosImovel.listing.address.stateAcronym,
-      tipoNegociacao: 'Venda Direta',
-      urlSiteExterno: `${this.VIVA_REAL_SITE_URL}${dadosImovel.link.href}`,
-      tipoBemDescricao: 'Fazenda',
-      dataCadastro: null,
-      areaHa: dadosImovel.listing.totalAreas[0] / 10000,
-      areaAtencao: false,
-      metroQuadrado: dadosImovel.listing.totalAreas[0],
-      aceitaParcelamento: null,
-      dataFim: null,
+      tipo_negociacao: 'Venda Direta',
+      url_site_externo: `${this.VIVA_REAL_SITE_URL}${dadosImovel.link.href}`,
+      tipo_bem_descricao: 'Fazenda',
+      data_cadastro: null,
+      area_ha: dadosImovel.listing.totalAreas[0] / 10000,
+      area_atencao: false,
+      metro_quadrado: dadosImovel.listing.totalAreas[0],
+      aceita_parcelamento: null,
+      data_fim: null,
       valor: dadosImovel.listing.pricingInfos[0].price,
-      valorAvaliacao: dadosImovel.listing.pricingInfos[0].price,
-      valorDesconto: null,
-      imovelPracas: null,
+      valor_avaliacao: dadosImovel.listing.pricingInfos[0].price,
+      valor_desconto: null,
+      imovel_pracas: null,
       imagens: JSON.stringify(urlsImagens),
       anunciante: JSON.stringify(anunciante),
       contato: JSON.stringify(contato),
       coordenadas: JSON.stringify(coordenadas),
       poi: JSON.stringify(dadosImovel.listing.address.poisList),
-      origem: 'VivaReal',
+      // origem: 'VivaReal',
     }
   }
 
-  public async buscarImoveisNoBanco(page: number, size: number, filtros: Record<string, any>) {
+  public async databasePropertySearch(page: number, size: number, filtros: Record<string, any>) {
     const query = Imovel.query().debug(true)
 
     if (filtros.precoMin !== undefined) {
@@ -158,15 +154,15 @@ export default class BuscaImoveisService {
     const paginatedResults = await query.paginate(page, size)
 
     return {
-      listings: paginatedResults.toJSON().data,
-      totalCount: paginatedResults.toJSON().meta.total,
-      currentPage: page,
-      pageSize: size,
-      totalPages: paginatedResults.toJSON().meta.last_page,
+      properties: paginatedResults.toJSON().data,
+      total_count: paginatedResults.toJSON().meta.total,
+      current_page: page,
+      page_size: size,
+      total_pages: paginatedResults.toJSON().meta.last_page,
     }
   }
 
-  private decodificarFiltrosParaVivaReal(filtros: Record<string, any>): Record<string, any> {
+  private vivarealDecodeFilters(filtros: Record<string, any>): Record<string, any> {
     const mapeamentoDeFiltros: Record<string, string> = {
       estado: 'addressState',
       cidade: 'addressCity',

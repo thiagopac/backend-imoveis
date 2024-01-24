@@ -24,11 +24,10 @@ Route.group(() => {
   Route.get('/', async () => {
     return { hello: 'world' }
   })
-  Route.get('/data/salvar-imoveis-nucleo-leiloes', 'DataController.salvarImoveisNucleoLeiloes')
-  Route.get('/data/salvar-imoveis-viva-real', 'DataController.salvarImoveisVivaReal')
+  Route.get('/data/save-nucleoleiloes', 'DataController.saveNucleoleiloes')
+  Route.get('/data/save-vivareal', 'DataController.saveVivareal')
 
   Route.group(() => {
-    Route.get('/buscar', 'BuscaImoveisController.buscarImoveis')
-    Route.get('/:id', 'ImovelController.buscarPorId')
-  }).prefix('/imoveis')
+    Route.get('/search', 'PropertySearchController.search')
+  }).prefix('/properties')
 }).prefix('/api')

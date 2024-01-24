@@ -83,7 +83,7 @@ export default class Imovel extends BaseModel {
   @column()
   public poi: JSON | null
 
-  @column()
+  @column({ serializeAs: null })
   public origem: string
 
   @column.dateTime({ autoCreate: true })

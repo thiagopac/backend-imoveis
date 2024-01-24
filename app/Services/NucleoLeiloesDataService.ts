@@ -6,26 +6,26 @@ import StringUtils from '../../utils/string.utils'
 export default class NucleoLeiloesDataService {
   private NUCLEO_LEILOES_API_URL = Env.get('NUCLEO_LEILOES_API_URL')
 
-  public async fetchAndSaveImoveis(estadoId: number, jwt: string) {
+  public async fetchAndSaveProperties(estadoId: number, jwt: string) {
     try {
       // Primeira requisição para descobrir o número total de páginas
-      const primeiraResposta = await this.fazerRequisicao(1, estadoId, jwt)
+      const primeiraResposta = await this.makeRequest(1, estadoId, jwt)
       const totalPaginas = primeiraResposta.paginas
 
       // Processar a primeira página de imóveis
-      await this.processarImoveis(primeiraResposta.imoveis)
+      await this.processProperties(primeiraResposta.imoveis)
 
       // Iterar sobre as páginas restantes
       for (let paginaAtual = 2; paginaAtual <= totalPaginas; paginaAtual++) {
-        const resposta = await this.fazerRequisicao(paginaAtual, estadoId, jwt)
-        await this.processarImoveis(resposta.imoveis)
+        const resposta = await this.makeRequest(paginaAtual, estadoId, jwt)
+        await this.processProperties(resposta.imoveis)
       }
     } catch (error) {
       console.error('Erro ao buscar ou salvar os imóveis:', error)
     }
   }
 
-  private async fazerRequisicao(pagina: number, estadoId: number, jwt: string) {
+  private async makeRequest(pagina: number, estadoId: number, jwt: string) {
     const response = await axios.post(
       this.NUCLEO_LEILOES_API_URL,
       {
@@ -53,20 +53,20 @@ export default class NucleoLeiloesDataService {
     return response.data
   }
 
-  private async processarImoveis(imoveis: any[]) {
+  private async processProperties(imoveis: any[]) {
     for (const imovelData of imoveis) {
-      await NucleoLeiloesDataService.salvarNoBanco(imovelData)
+      await NucleoLeiloesDataService.saveOnDatabase(imovelData)
     }
   }
 
-  private static async salvarNoBanco(dadosImovel: any): Promise<void> {
+  private static async saveOnDatabase(dadosImovel: any): Promise<void> {
     const tipoLeilaoDescricoes = {
       1: 'Extrajudicial',
       2: 'Judicial',
       5: 'Venda Direta',
     }
 
-    const { areaEmHectares, areaAtencao } = this.extrairAreaEmHectares(
+    const { areaEmHectares, areaAtencao } = this.extractHectares(
       dadosImovel.descricao,
       dadosImovel.informacaoJudicial
     )
@@ -75,7 +75,7 @@ export default class NucleoLeiloesDataService {
       (imagem: any) => imagem.caminhoImagemLarge
     )
 
-    const estadoNomeCompleto = this.mapearEstado(dadosImovel.estado)
+    const estadoNomeCompleto = this.stateMap(dadosImovel.estado)
 
     const imovel = {
       externalId: dadosImovel.id,
@@ -108,7 +108,7 @@ export default class NucleoLeiloesDataService {
     await Imovel.create(imovel)
   }
 
-  private static extrairAreaEmHectares(
+  private static extractHectares(
     descricao: string,
     informacaoJudicial: string
   ): {
@@ -153,7 +153,7 @@ export default class NucleoLeiloesDataService {
     return { areaEmHectares, areaAtencao }
   }
 
-  private static mapearEstado(sigla: string): string {
+  private static stateMap(sigla: string): string {
     const estados = {
       AC: 'Acre',
       AL: 'Alagoas',

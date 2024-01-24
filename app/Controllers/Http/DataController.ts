@@ -3,7 +3,7 @@ import NucleoLeiloesDataService from 'App/Services/NucleoLeiloesDataService'
 import VivaRealDataService from 'App/Services/VivaRealDataService'
 
 export default class DataController {
-  public async salvarImoveisNucleoLeiloes({ request, response }: HttpContextContract) {
+  public async saveNucleoleiloes({ request, response }: HttpContextContract) {
     const dataService = new NucleoLeiloesDataService()
     const estadoId = request.input('estadoId', 0)
     const jwt = request.input('jwt')
@@ -11,12 +11,12 @@ export default class DataController {
     try {
       if (estadoId > 0) {
         // Processar apenas o estado especificado
-        await dataService.fetchAndSaveImoveis(estadoId, jwt)
+        await dataService.fetchAndSaveProperties(estadoId, jwt)
         response.status(200).send('Dados processados com sucesso para o estado ' + estadoId)
       } else {
         // Processar todos os estados
         for (let id = 1; id <= 27; id++) {
-          await dataService.fetchAndSaveImoveis(id, jwt)
+          await dataService.fetchAndSaveProperties(id, jwt)
         }
         response.status(200).send('Dados processados com sucesso para todos os estados')
       }
@@ -26,7 +26,7 @@ export default class DataController {
     }
   }
 
-  public async salvarImoveisVivaReal({ request, response }: HttpContextContract) {
+  public async saveVivareal({ request, response }: HttpContextContract) {
     const dataService = new VivaRealDataService()
     const estadoId = request.input('estadoId', 0)
     const startFrom = request.input('startFrom', 0)

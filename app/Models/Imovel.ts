@@ -5,13 +5,13 @@ import { v4 as uuidv4 } from 'uuid'
 export default class Imovel extends BaseModel {
   public static table = 'imoveis'
 
-  @column({ isPrimary: true })
+  @column({ isPrimary: true, serializeAs: null })
   public id: number
 
   @column()
   public uuid: string
 
-  @column()
+  @column({ serializeAs: null })
   public externalId: number | null
 
   @column()

@@ -28,6 +28,13 @@ Route.group(() => {
   Route.get('/data/save-vivareal', 'DataController.saveVivareal')
 
   Route.group(() => {
+    Route.get('states', 'LocationController.states')
+    Route.get('cities/state', 'LocationController.cities') // :param = id || abbr
+    Route.get('cities/search', 'LocationController.searchCities')
+  }).prefix('/location')
+
+  Route.group(() => {
     Route.get('/search', 'PropertySearchController.search')
+    Route.get('/:uuid', 'PropertySearchController.show')
   }).prefix('/properties')
 }).prefix('/api')

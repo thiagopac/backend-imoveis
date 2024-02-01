@@ -4,5 +4,4 @@ coverage
 .vscode
 .DS_STORE
 tmp
-*.sqlite
 *.sql

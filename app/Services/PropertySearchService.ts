@@ -1,7 +1,7 @@
 import axios from 'axios'
 import Env from '@ioc:Adonis/Core/Env'
 import Imovel from 'App/Models/Imovel'
-import { v4 as uuidv4, v5 as uuidv5 } from 'uuid'
+import { v4 as uuidv4 } from 'uuid'
 
 export default class PropertySearchService {
   private VIVA_REAL_API_URL = Env.get('VIVA_REAL_API_URL')
@@ -10,6 +10,25 @@ export default class PropertySearchService {
   public async combinedPropertySearch(page: number, size: number, filters: Record<string, any>) {
     const tipoVenda = filters.tipoVenda
     delete filters.tipoVenda
+
+    if (filters.cidade !== undefined) {
+      const cidades = filters.cidade.split(',')
+      filters.cidade = []
+      filters.estado = filters.estado?.split(',') || []
+      cidades.forEach((cidade: string) => {
+        const cidadeEstado = cidade.split('/')
+        filters.cidade.push(cidadeEstado[0])
+
+        if (filters.estado !== undefined && !filters.estado.includes(cidadeEstado[1])) {
+          filters.estado.push(cidadeEstado[1])
+        }
+      })
+
+      filters.estado = filters.estado.join(',')
+      filters.cidade = filters.cidade.join(',')
+    }
+
+    console.log('filters', filters)
 
     const databaseResult = await this.databasePropertySearch(page, size, filters)
     const vivarealResult = await this.vivarealPropertySearch(page, size, filters)
@@ -67,6 +86,8 @@ export default class PropertySearchService {
   }
 
   private async fazerRequisicao(size: number, from: number, filters: Record<string, any>) {
+    console.log('filters: ', filters)
+
     return await axios.get(this.VIVA_REAL_API_URL, {
       headers: {
         'User-Agent': 'insomnia/8.5.1',
@@ -110,7 +131,7 @@ export default class PropertySearchService {
     const uuid = this.generateCustomUUID(dadosImovel.listing.id)
 
     return {
-      uuid: this.generateCustomUUID(dadosImovel.listing.id),
+      uuid: uuid,
       // external_id: dadosImovel.listing.id,
       titulo: dadosImovel.listing.title,
       descricao: dadosImovel.listing.description,
@@ -131,10 +152,10 @@ export default class PropertySearchService {
       valor_desconto: null,
       imovel_pracas: null,
       imagens: urlsImagens,
-      anunciante: JSON.stringify(anunciante),
-      contato: JSON.stringify(contato),
-      coordenadas: JSON.stringify(coordenadas),
-      poi: JSON.stringify(dadosImovel.listing.address.poisList),
+      anunciante: anunciante,
+      contato: contato,
+      coordenadas: coordenadas,
+      poi: dadosImovel.listing.address.poisList,
       origem: 'Particular',
     }
   }
@@ -162,7 +183,16 @@ export default class PropertySearchService {
   }
 
   public async databasePropertySearch(page: number, size: number, filtros: Record<string, any>) {
-    const query = Imovel.query().debug(false)
+    const query = Imovel.query().debug(true)
+
+    const cidadesStr = filtros.cidade
+    const estadosStr = filtros.estado
+
+    const cidades = filtros.cidade?.split(',')
+    const estados = filtros.estado?.split(',')
+
+    filtros.cidade = cidades
+    filtros.estado = estados
 
     if (filtros.precoMin !== undefined) {
       query.where('valor', '>=', filtros.precoMin)
@@ -195,6 +225,9 @@ export default class PropertySearchService {
         }
       }
     })
+
+    filtros.cidade = cidadesStr
+    filtros.estado = estadosStr
 
     const paginatedResults = await query.paginate(page, size)
 

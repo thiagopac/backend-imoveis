@@ -33,6 +33,7 @@ export default class ImoveisSchema extends BaseSchema {
       table.json('coordenadas').nullable()
       table.json('poi').nullable()
       table.string('origem').notNullable()
+      table.boolean('replace_img').notNullable().defaultTo(false)
       table.timestamps()
     })
   }

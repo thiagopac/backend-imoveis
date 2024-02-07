@@ -36,5 +36,6 @@ Route.group(() => {
   Route.group(() => {
     Route.get('/search', 'PropertySearchController.search')
     Route.get('/:uuid', 'PropertySearchController.show')
+    Route.patch('/:uuid', 'PropertySearchController.update')
   }).prefix('/properties')
 }).prefix('/api')

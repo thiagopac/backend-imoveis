@@ -86,6 +86,9 @@ export default class Imovel extends BaseModel {
   @column({ serializeAs: null })
   public origem: string
 
+  @column()
+  public replaceImg: boolean
+
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
 

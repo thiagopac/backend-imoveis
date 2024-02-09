@@ -51,6 +51,10 @@ export default class PropertySearchController {
 
     try {
       const imovel = await this.propertySearchService.updateProperty(uuid, data)
+      imovel.imagens = JSON.parse(imovel.imagens!.toString())
+      imovel.imovelPracas =
+        imovel.imovelPracas !== undefined ? JSON.parse(imovel.imovelPracas!.toString()) : null
+
       response.status(200).send(imovel)
     } catch (error) {
       console.error(error)

@@ -197,10 +197,10 @@ export default class PropertySearchService {
       query.where('valor', '<=', filtros.precoMax)
     }
     if (filtros.areaMin !== undefined) {
-      query.where('metroQuadrado', '>=', filtros.areaMin)
+      query.where('area_ha', '>=', filtros.areaMin)
     }
     if (filtros.areaMax !== undefined) {
-      query.where('metroQuadrado', '<=', filtros.areaMax)
+      query.where('area_ha', '<=', filtros.areaMax)
     }
 
     if (filtros.palavraChave !== undefined) {

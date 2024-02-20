@@ -2,6 +2,7 @@ import axios from 'axios'
 import Env from '@ioc:Adonis/Core/Env'
 import Imovel from 'App/Models/Imovel'
 import StringUtils from '../../utils/string.utils'
+import Database from '@ioc:Adonis/Lucid/Database'
 
 export default class NucleoLeiloesDataService {
   private NUCLEO_LEILOES_API_URL = Env.get('NUCLEO_LEILOES_API_URL')
@@ -22,6 +23,19 @@ export default class NucleoLeiloesDataService {
       }
     } catch (error) {
       console.error('Erro ao buscar ou salvar os imóveis:', error)
+      throw error
+    }
+  }
+
+  public async limparImoveisExistente(): Promise<void> {
+    try {
+      // await Database.rawQuery('TRUNCATE TABLE imoveis RESTART IDENTITY CASCADE;') // Para PostgreSQL
+      // await Database.rawQuery('TRUNCATE TABLE imoveis;') //Para MySQL ou MariaDB
+      await Database.from('imoveis').delete()
+      await Database.rawQuery("UPDATE SQLITE_SEQUENCE SET SEQ=0 WHERE NAME='imoveis';")
+    } catch (error) {
+      console.error('Erro ao limpar os imóveis existentes:', error)
+      throw error
     }
   }
 

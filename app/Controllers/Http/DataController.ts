@@ -9,6 +9,8 @@ export default class DataController {
     const jwt = request.input('jwt')
 
     try {
+      await dataService.limparImoveisExistente()
+
       if (estadoId > 0) {
         // Processar apenas o estado especificado
         await dataService.fetchAndSaveProperties(estadoId, jwt)

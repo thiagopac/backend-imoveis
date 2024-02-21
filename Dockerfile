@@ -29,8 +29,8 @@ ENV VIVA_REAL_SITE_URL = "https://www.vivareal.com.br"
 COPY --chown=node:node ./package*.json ./
 RUN npm ci --production
 COPY --chown=node:node --from=build /home/node/app/build .
-RUN chmod +x /home/node/app/migration-run.sh
 COPY --chown=node:node migration-run.sh /home/node/app/migration-run.sh
+RUN chmod +x /home/node/app/migration-run.sh
 EXPOSE $PORT
 
 CMD ["/bin/sh", "-c", "/home/node/app/migration-run.sh && dumb-init node server.js"]

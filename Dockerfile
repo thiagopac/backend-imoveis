@@ -22,9 +22,9 @@ ENV DB_CONNECTION=sqlite
 ENV APP_KEY=562bDLIwef1IVyqbEMwXlbuyUI1H1lYm
 ENV DRIVE_DISK=local
 ENV DB_FILEPATH=./tmp/database.sqlite
-ENV NUCLEO_LEILOES_API_URL = "https://api.nucleoleiloes.com.br/imovel/filtro"
-ENV VIVA_REAL_API_URL = "https://glue-api.vivareal.com/v2/listings"
-ENV VIVA_REAL_SITE_URL = "https://www.vivareal.com.br"
+ENV NUCLEO_LEILOES_API_URL="https://api.nucleoleiloes.com.br/imovel/filtro"
+ENV VIVA_REAL_API_URL="https://glue-api.vivareal.com/v2/listings"
+ENV VIVA_REAL_SITE_URL="https://www.vivareal.com.br"
 
 COPY --chown=node:node ./package*.json ./
 RUN npm ci --production

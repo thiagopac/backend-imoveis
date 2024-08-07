@@ -46,8 +46,14 @@ jobs:
       - name: Prepare package
         run: |
           mkdir -p ${{ github.workspace }}/myapp
-          cp -r . ${{ github.workspace }}/myapp
-          cp -r ./database ${{ github.workspace }}/myapp/database # Ajuste o caminho conforme necessário
+          cp -r ./app ${{ github.workspace }}/myapp/app
+          cp -r ./database ${{ github.workspace }}/myapp/database
+          cp -r ./public ${{ github.workspace }}/myapp/public
+          cp -r ./resources ${{ github.workspace }}/myapp/resources
+          cp -r ./start ${{ github.workspace }}/myapp/start
+          cp -r ./config ${{ github.workspace }}/myapp/config
+          cp -r ./build ${{ github.workspace }}/myapp/build
+          cp .env ace-manifest.json package.json package-lock.json ${{ github.workspace }}/myapp/
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3

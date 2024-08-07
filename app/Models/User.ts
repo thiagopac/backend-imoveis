@@ -15,7 +15,6 @@ import UserInfo from './UserInfo'
 import Recharge from 'App/Models/Recharge'
 import { compose } from '@ioc:Adonis/Core/Helpers'
 import { Notifiable } from '@ioc:Verful/Notification/Mixins'
-import UserNotification from 'App/Models/UserNotification'
 
 export default class User extends compose(BaseModel, Notifiable('notifications')) {
   /*

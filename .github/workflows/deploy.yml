@@ -46,13 +46,11 @@ jobs:
       - name: Prepare package
         run: |
           mkdir -p ${{ github.workspace }}/myapp
-          if [ -d "./app" ]; then cp -r ./app ${{ github.workspace }}/myapp/app; fi
-          if [ -d "./database" ]; then cp -r ./database ${{ github.workspace }}/myapp/database; fi
-          if [ -d "./public" ]; then cp -r ./public ${{ github.workspace }}/myapp/public; fi
-          if [ -d "./resources" ]; then cp -r ./resources ${{ github.workspace }}/myapp/resources; fi
-          if [ -d "./start" ]; then cp -r ./start ${{ github.workspace }}/myapp/start; fi
-          if [ -d "./config" ]; then cp -r ./config ${{ github.workspace }}/myapp/config; fi
-          if [ -d "./build" ]; then cp -r ./build ${{ github.workspace }}/myapp/build; fi
+          cp -r ./app ${{ github.workspace }}/myapp/app
+          cp -r ./database ${{ github.workspace }}/myapp/database
+          cp -r ./build ${{ github.workspace }}/myapp/build
+          cp -r ./config ${{ github.workspace }}/myapp/config
+          cp -r ./start ${{ github.workspace }}/myapp/start
           cp .env ace-manifest.json package.json package-lock.json ${{ github.workspace }}/myapp/
 
       - name: Upload artifact
@@ -72,7 +70,7 @@ jobs:
           name: node-app
 
       - name: List directory contents
-        run: ls -la ${{ github.workspace }}
+        run: ls -la ${{ github.workspace }}/myapp
 
       - name: Deploy to Azure
         uses: azure/webapps-deploy@v2

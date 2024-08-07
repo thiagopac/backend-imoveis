@@ -73,11 +73,11 @@ jobs:
           name: node-app
 
       - name: List directory contents
-        run: ls -la ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+        run: ls -la ${{ github.workspace }}/node-app
 
       - name: Deploy to Azure
         uses: azure/webapps-deploy@v2
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+          package: ${{ github.workspace }}/node-app

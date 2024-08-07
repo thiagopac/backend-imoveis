@@ -45,19 +45,22 @@ jobs:
 
       - name: Prepare package
         run: |
-          mkdir -p ${{ github.workspace }}/myapp
-          cp -r ./app ${{ github.workspace }}/myapp/app
-          cp -r ./database ${{ github.workspace }}/myapp/database
-          cp -r ./build ${{ github.workspace }}/myapp/build
-          cp -r ./config ${{ github.workspace }}/myapp/config
-          cp -r ./start ${{ github.workspace }}/myapp/start
-          cp .env ace-manifest.json package.json package-lock.json ${{ github.workspace }}/myapp/
+          mkdir -p ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+          cp -r ./app ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/app
+          cp -r ./database ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/database
+          cp -r ./build ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/build
+          cp -r ./config ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/config
+          cp -r ./start ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/start
+          cp .env ace-manifest.json package.json package-lock.json ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/
+
+      - name: Verify package contents
+        run: ls -la ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
           name: node-app
-          path: ${{ github.workspace }}/myapp
+          path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
 
   deploy:
     runs-on: ubuntu-latest
@@ -70,11 +73,11 @@ jobs:
           name: node-app
 
       - name: List directory contents
-        run: ls -la ${{ github.workspace }}/myapp
+        run: ls -la ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
 
       - name: Deploy to Azure
         uses: azure/webapps-deploy@v2
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: ${{ github.workspace }}/myapp
+          package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}

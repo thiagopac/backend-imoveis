@@ -6,7 +6,7 @@ env:
 
 on:
   push:
-    branches: ['main']
+    branches: ['main', 'staging', 'development']
   workflow_dispatch:
 
 permissions:
@@ -19,65 +19,42 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v2
         with:
-          node-version: '18.x'
+          registry: ghcr.io
+          username: ${{ secrets.GITHUB_ACTOR }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set environment variables
+      - name: Build and push Docker image
+        env:
+          IMAGE_NAME: ghcr.io/${{ github.repository }}/backend-imoveis
         run: |
-          echo PORT=${{ secrets.PORT }} >> .env
-          echo HOST=${{ secrets.HOST }} >> .env
-          echo NODE_ENV=${{ secrets.NODE_ENV }} >> .env
-          echo APP_KEY=${{ secrets.APP_KEY }} >> .env
-          echo DRIVE_DISK=${{ secrets.DRIVE_DISK }} >> .env
-          echo DB_CONNECTION=${{ secrets.DB_CONNECTION }} >> .env
-          echo DB_FILEPATH=${{ secrets.DB_FILEPATH }} >> .env
-          echo NUCLEO_LEILOES_API_URL=${{ secrets.NUCLEO_LEILOES_API_URL }} >> .env
-          echo VIVA_REAL_API_URL=${{ secrets.VIVA_REAL_API_URL }} >> .env
-          echo VIVA_REAL_SITE_URL=${{ secrets.VIVA_REAL_SITE_URL }} >> .env
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Build
-        run: npm run build --production -- --ignore-ts-errors
-
-      - name: Prepare package
-        run: |
-          mkdir -p ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
-          cp -r ./app ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/app
-          cp -r ./database ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/database
-          cp -r ./build ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/build
-          cp -r ./config ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/config
-          cp -r ./start ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/start
-          cp .env ace-manifest.json package.json package-lock.json ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/
-
-      - name: Verify package contents
-        run: ls -la ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: node-app
-          path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+          docker build -t $IMAGE_NAME:${{ github.ref_name }} .
+          docker push $IMAGE_NAME:${{ github.ref_name }}
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
 
     steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v3
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.5.3
         with:
-          name: node-app
-
-      - name: List directory contents
-        run: ls -la ${{ github.workspace }}/myapp
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
       - name: Deploy to Azure
-        uses: azure/webapps-deploy@v2
-        with:
-          app-name: ${{ env.AZURE_WEBAPP_NAME }}
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: ${{ github.workspace }}/myapp
+        env:
+          IMAGE_NAME: ghcr.io/${{ github.repository }}/backend-imoveis
+          AZURE_WEBAPP_NAME: backendimoveis
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.AZURE_SSH_USER }}@${{ secrets.AZURE_SSH_HOST }} << 'EOF'
+          docker pull $IMAGE_NAME:${{ github.ref_name }}
+          docker stop $AZURE_WEBAPP_NAME || true
+          docker rm $AZURE_WEBAPP_NAME || true
+          docker run -d --name $AZURE_WEBAPP_NAME -p 80:3333 $IMAGE_NAME:${{ github.ref_name }}
+          docker system prune -af
+          EOF

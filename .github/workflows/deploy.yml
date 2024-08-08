@@ -29,16 +29,16 @@ jobs:
           app-name: backendimoveis
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
           package: .
-        env:
-          HOST: 0.0.0.0
-          PORT: 8080
-          NODE_ENV: ${{ secrets.NODE_ENV }}
-          SESSION_DRIVER: ${{ secrets.SESSION_DRIVER }}
-          CACHE_VIEWS: ${{ secrets.CACHE_VIEWS }}
-          APP_KEY: ${{ secrets.APP_KEY }}
-          DB_CONNECTION: ${{ secrets.DB_CONNECTION }}
-          DB_HOST: ${{ secrets.DB_HOST }}
-          DB_PORT: ${{ secrets.DB_PORT }}
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DB_DATABASE: ${{ secrets.DB_DATABASE }}
+
+      - name: Set Adonis Environment Variables
+        run: |
+          az webapp config appsettings set --name backendimoveis --resource-group grupo-de-recursos --settings HOST=0.0.0.0
+          az webapp config appsettings set --name backendimoveis --resource-group grupo-de-recursos --settings PORT=8080
+          az webapp config appsettings set --name backendimoveis --resource-group grupo-de-recursos --settings NODE_ENV=production
+          az webapp config appsettings set --name backendimoveis --resource-group grupo-de-recursos --settings APP_KEY=${{ secrets.APP_KEY }}
+          az webapp config appsettings set --name backendimoveis --resource-group grupo-de-recursos --settings DB_CONNECTION=${{ secrets.DB_CONNECTION }}
+          az webapp config appsettings set --name backendimoveis --resource-group grupo-de-recursos --settings DB_HOST=${{ secrets.DB_HOST }}
+          az webapp config appsettings set --name backendimoveis --resource-group grupo-de-recursos --settings DB_PORT=${{ secrets.DB_PORT }}
+          az webapp config appsettings set --name backendimoveis --resource-group grupo-de-recursos --settings DB_USER=${{ secrets.DB_USER }}
+          az webapp config appsettings set --name backendimoveis --resource-group grupo-de-recursos --settings DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+          az webapp config appsettings set --name backendimoveis --resource-group grupo-de-recursos --settings DB_DATABASE=${{ secrets.DB_DATABASE }}

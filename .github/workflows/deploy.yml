@@ -29,3 +29,16 @@ jobs:
           app-name: backendimoveis
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
           package: .
+        env:
+          HOST: 0.0.0.0
+          PORT: 8080
+          NODE_ENV: ${{ secrets.NODE_ENV }}
+          SESSION_DRIVER: ${{ secrets.SESSION_DRIVER }}
+          CACHE_VIEWS: ${{ secrets.CACHE_VIEWS }}
+          APP_KEY: ${{ secrets.APP_KEY }}
+          DB_CONNECTION: ${{ secrets.DB_CONNECTION }}
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_DATABASE: ${{ secrets.DB_DATABASE }}

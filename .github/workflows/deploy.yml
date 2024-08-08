@@ -1,4 +1,4 @@
-name: Deploy to Azure App Service
+name: Build and deploy AdonisJS app to Azure Web App
 
 on:
   push:
@@ -8,8 +8,9 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout Source
+      - name: Checkout source code
         uses: actions/checkout@v3
 
       - name: Setup Node.js version
@@ -17,28 +18,31 @@ jobs:
         with:
           node-version: '18.x'
 
-      - name: Install Dependencies
+      - name: Install dependencies
         run: npm install
 
-      - name: Build Application
+      - name: Build application
         run: npm run build
 
-      - name: Deploy to Azure App Service
+      - name: Generate .env file
+        run: |
+          echo "PORT=${{ secrets.PORT }}" >> .env
+          echo "HOST=${{ secrets.HOST }}" >> .env
+          echo "NODE_ENV=production" >> .env
+          echo "APP_KEY=${{ secrets.APP_KEY }}" >> .env
+          echo "DRIVE_DISK=${{ secrets.DRIVE_DISK }}" >> .env
+          echo "DB_CONNECTION=${{ secrets.DB_CONNECTION }}" >> .env
+          echo "DB_FILEPATH=${{ secrets.DB_FILEPATH }}" >> .env
+          echo "NUCLEO_LEILOES_API_URL=${{ secrets.NUCLEO_LEILOES_API_URL }}" >> .env
+          echo "VIVA_REAL_API_URL=${{ secrets.VIVA_REAL_API_URL }}" >> .env
+          echo "VIVA_REAL_SITE_URL=${{ secrets.VIVA_REAL_SITE_URL }}" >> .env
+
+      - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v2
         with:
           app-name: backendimoveis
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
           package: .
 
-      - name: Set Adonis Environment Variables
-        run: |
-          az webapp config appsettings set --name backendimoveis --resource-group grupo-de-recursos --settings HOST=0.0.0.0
-          az webapp config appsettings set --name backendimoveis --resource-group grupo-de-recursos --settings PORT=8080
-          az webapp config appsettings set --name backendimoveis --resource-group grupo-de-recursos --settings NODE_ENV=production
-          az webapp config appsettings set --name backendimoveis --resource-group grupo-de-recursos --settings APP_KEY=${{ secrets.APP_KEY }}
-          az webapp config appsettings set --name backendimoveis --resource-group grupo-de-recursos --settings DB_CONNECTION=${{ secrets.DB_CONNECTION }}
-          az webapp config appsettings set --name backendimoveis --resource-group grupo-de-recursos --settings DB_HOST=${{ secrets.DB_HOST }}
-          az webapp config appsettings set --name backendimoveis --resource-group grupo-de-recursos --settings DB_PORT=${{ secrets.DB_PORT }}
-          az webapp config appsettings set --name backendimoveis --resource-group grupo-de-recursos --settings DB_USER=${{ secrets.DB_USER }}
-          az webapp config appsettings set --name backendimoveis --resource-group grupo-de-recursos --settings DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-          az webapp config appsettings set --name backendimoveis --resource-group grupo-de-recursos --settings DB_DATABASE=${{ secrets.DB_DATABASE }}
+      - name: Verify deployment
+        run: curl -f https://backendimoveis-aweqc7fxgnemekcs.brazilsouth-01.azurewebsites.net || exit 1

@@ -8,7 +8,7 @@ export default class PropertySearchService {
   private VIVA_REAL_SITE_URL = Env.get('VIVA_REAL_SITE_URL')
 
   public async combinedPropertySearch(page: number, size: number, filters: Record<string, any>) {
-    const tipoVenda = filters.tipoVenda
+    const tipoVenda = filters.tipoVenda || 'leilao'
     delete filters.tipoVenda
 
     if (filters.cidade !== undefined) {
@@ -29,17 +29,21 @@ export default class PropertySearchService {
     }
 
     const databaseResult = await this.databasePropertySearch(page, size, filters)
-    const vivarealResult = await this.vivarealPropertySearch(page, size, filters)
+
+    let vivarealResult = { properties: [], total_count: 0 }
+    if (tipoVenda === 'particular') {
+      vivarealResult = await this.vivarealPropertySearch(page, size, filters)
+    }
+
     let combined: any[] = []
     let combinedTotal: number = 0
-    if (tipoVenda !== undefined) {
-      if (tipoVenda === 'leilao') {
-        combined = [...databaseResult.properties]
-        combinedTotal = databaseResult.total_count
-      } else if (tipoVenda === 'particular') {
-        combined = [...vivarealResult.properties]
-        combinedTotal = vivarealResult.total_count
-      }
+
+    if (tipoVenda === 'leilao') {
+      combined = [...databaseResult.properties]
+      combinedTotal = databaseResult.total_count
+    } else if (tipoVenda === 'particular') {
+      combined = [...vivarealResult.properties]
+      combinedTotal = vivarealResult.total_count
     } else {
       combined = [...databaseResult.properties, ...vivarealResult.properties]
       combinedTotal = databaseResult.total_count + vivarealResult.total_count
@@ -60,7 +64,6 @@ export default class PropertySearchService {
 
   public async vivarealPropertySearch(page: number, size: number, filters: Record<string, any>) {
     const from = (page - 1) * size
-
     const filtrosDecodificados = this.vivarealDecodeFilters(filters)
 
     try {
@@ -78,30 +81,51 @@ export default class PropertySearchService {
 
       return data
     } catch (error) {
-      console.error('Erro ao buscar os imóveis do VivaReal:', error)
       throw error
     }
   }
 
-  private async fazerRequisicao(size: number, from: number, filters: Record<string, any>) {
-    return await axios.get(this.VIVA_REAL_API_URL, {
-      headers: {
-        'User-Agent': 'insomnia/8.5.1',
-        'X-Domain': 'www.vivareal.com.br',
-        'accept': 'application/json',
-      },
-      params: {
-        business: 'SALE',
-        unitTypes: ['FARM'],
-        unitTypesV3: ['FARM'],
-        includeFields:
-          'search(result(listings(listing(description,title,id,portal,address,totalAreas,pricingInfos,status,advertiserContact),account(id,name,logoUrl,phones),medias,accountLink,link)),totalCount),page(uriPagination)',
-        categoryPage: 'RESULT',
-        size,
-        from,
-        ...filters,
-      },
-    })
+  private delay(ms: number) {
+    return new Promise((resolve) => setTimeout(resolve, ms))
+  }
+
+  private async fazerRequisicao(
+    size: number,
+    from: number,
+    filters: Record<string, any>,
+    retryCount: number = 0
+  ) {
+    const MAX_RETRIES = 3
+
+    try {
+      return await axios.get(this.VIVA_REAL_API_URL, {
+        headers: {
+          'User-Agent': 'insomnia/8.5.1',
+          'X-Domain': 'www.vivareal.com.br',
+          'accept': 'application/json',
+        },
+        params: {
+          business: 'SALE',
+          unitTypes: ['FARM'],
+          unitTypesV3: ['FARM'],
+          includeFields:
+            'search(result(listings(listing(description,title,id,portal,address,totalAreas,pricingInfos,status,advertiserContact),account(id,name,logoUrl,phones),medias,accountLink,link)),totalCount),page(uriPagination)',
+          categoryPage: 'RESULT',
+          size,
+          from,
+          ...filters,
+        },
+      })
+    } catch (error) {
+      if (error.response && error.response.status === 403 && retryCount < MAX_RETRIES) {
+        console.log(`Tentativa ${retryCount + 1} de ${MAX_RETRIES} após erro 403...`)
+        await this.delay(1000)
+        return this.fazerRequisicao(size, from, filters, retryCount + 1)
+      } else {
+        // console.error(`Erro após ${retryCount} tentativas.`, error)
+        throw error
+      }
+    }
   }
 
   private propertyMap(dadosImovel: any) {
@@ -128,7 +152,6 @@ export default class PropertySearchService {
 
     return {
       uuid: uuid,
-      // external_id: dadosImovel.listing.id,
       titulo: dadosImovel.listing.title,
       descricao: dadosImovel.listing.description,
       cep: dadosImovel.listing.address.zipCode,
@@ -137,22 +160,14 @@ export default class PropertySearchService {
       tipo_negociacao: 'Venda Direta',
       url_site_externo: `${this.VIVA_REAL_SITE_URL}${dadosImovel.link.href}`,
       tipo_bem_descricao: 'Fazenda',
-      data_cadastro: null,
       area_ha: dadosImovel.listing.totalAreas[0] / 10000 || 0,
       area_atencao: dadosImovel.listing.totalAreas.length > 0 ? false : true,
       metro_quadrado: dadosImovel.listing.totalAreas[0],
-      aceita_parcelamento: null,
-      data_fim: null,
       valor: dadosImovel.listing.pricingInfos[0].price,
-      valor_avaliacao: dadosImovel.listing.pricingInfos[0].price,
-      valor_desconto: null,
-      imovel_pracas: null,
       imagens: urlsImagens,
       anunciante: anunciante,
       contato: contato,
       coordenadas: coordenadas,
-      poi: dadosImovel.listing.address.poisList,
-      origem: 'Particular',
     }
   }
 
@@ -304,7 +319,6 @@ export default class PropertySearchService {
         throw new Error('Imóvel não encontrado na API do VivaReal')
       }
     } catch (error) {
-      console.error('Erro ao buscar imóvel por ID na API do VivaReal:', error)
       throw error
     }
   }

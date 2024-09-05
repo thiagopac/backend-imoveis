@@ -9,7 +9,7 @@ export default class PropertySearchController {
   public async search({ request, response }: HttpContextContract) {
     const page = parseInt(request.input('page', '1'))
     const size = parseInt(request.input('size', '10'))
-    const filters = request.qs()
+    const filters = request.qs() || {}
 
     try {
       const imoveis = await this.propertySearchService.combinedPropertySearch(page, size, filters)
